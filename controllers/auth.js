@@ -13,14 +13,6 @@ const transporter = nodemailer.createTransport(sendgridTransport({
   }
 }));
 
-// const transporter = nodemailer.createTransport({
-//   service: 'SendGrid',
-//   auth: {
-//     user: 'msowmyadeveloper@gmail.com',
-//     pass: 'SowmyareddyDhruvareddy@123'
-//   }
-// });
-
 exports.getLogin = (req, res) => {
   let message = req.flash('error');
 
