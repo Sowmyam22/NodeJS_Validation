@@ -22,7 +22,18 @@ router.get('/signup', getSignup);
 
 router.post('/login', postLogin);
 
-router.post('/signup', check('email').isEmail().withMessage('Please enter a valid email!!'), postSignup);
+router.post('/signup',
+  check('email')
+    .isEmail()
+    .withMessage('Please enter a valid email!!')
+    .custom((value, {req}) => {                               // custom validator
+      if (value == 'test@test.com') {
+        throw new Error('This email address is forbidden')
+      }
+      return true;
+    }),
+  postSignup
+);
 
 router.post('/logout', postLogout);
 
