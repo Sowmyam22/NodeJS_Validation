@@ -54,7 +54,16 @@ app.use(csrfProtection); // should write this middleware only after the session 
 
 app.use(flash()); // should be initialized only after the initialzation of the session
 
+// middleware to check if logged in user is authenticated and adding the csrf protection for every request
+
 app.use((req, res, next) => {
+  res.locals.isAuthenticated = req.session.isLoggedIn;
+  res.locals.csrfToken = req.csrfToken();
+  next();
+})
+
+app.use((req, res, next) => {
+  // throw new Error('Sync Dummy');
   if (!req.session.user) {
     return next();
   }
@@ -65,20 +74,12 @@ app.use((req, res, next) => {
         return next();
       }
       req.user = user;
-      next()
+      next();
     })
     .catch(err => {
-      throw new Error(err);
-      // next();
+      // throw new Error(err);
+      next(new Error(err));
     });
-})
-
-// middleware to check if logged in user is authenticated and adding the csrf protection for every request
-
-app.use((req, res, next) => {
-  res.locals.isAuthenticated = req.session.isLoggedIn;
-  res.locals.csrfToken = req.csrfToken();
-  next();
 })
 
 app.use('/admin', adminData.routes);
@@ -93,7 +94,11 @@ if there are more than one error-handling middleware.they'll execute from top to
 
 app.use((error, req, res, next) => {
   // res.status(error.httpStatusCode).render(.....);
-  res.redirect('/500');
+  // res.redirect('/500');
+  res.status(500).render('500', {
+    pageTitle: '500 Error',
+    path: '/500',
+  });
 })
 
 Product.belongsTo(User, { constraints: true, onDelete: 'CASCADE' });

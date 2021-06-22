@@ -4,7 +4,7 @@ const Product = require('../models/product');
 const User = require('../models/user');
 
 // get the product form
-exports.getAddProduct = (req, res) => {
+exports.getAddProduct = (req, res, next) => {
   // restricting the access of the route 
   if (!req.session.isLoggedIn) {
     return res.redirect('/login');
@@ -65,7 +65,7 @@ exports.postAddProduct = (req, res, next) => {
 };
 
 // get the edit product form
-exports.getEditProduct = (req, res) => {
+exports.getEditProduct = (req, res, next) => {
   const editMode = req.query.edit;
 
   if (!editMode) {
@@ -99,7 +99,7 @@ exports.getEditProduct = (req, res) => {
 
 };
 
-exports.postEditProduct = (req, res) => {
+exports.postEditProduct = (req, res, next) => {
   const { productId, title, imageUrl, price, description } = req.body;
   const editMode = req.query.edit;
   const errors = validationResult(req);
@@ -145,7 +145,7 @@ exports.postEditProduct = (req, res) => {
 }
 
 // To get admin products along with edit and delete functionality
-exports.getProducts = (req, res) => {
+exports.getProducts = (req, res, next) => {
   // using sequelize to fetch the products
 
   // Product.findAll()
@@ -165,7 +165,7 @@ exports.getProducts = (req, res) => {
     })
 }
 
-exports.postDeleteProduct = (req, res) => {
+exports.postDeleteProduct = (req, res, next) => {
   const productId = req.body.productId;
 
   Product.findByPk(productId)

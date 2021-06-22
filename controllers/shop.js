@@ -1,23 +1,23 @@
 const Product = require('../models/product');
 
-exports.getProducts = (req, res) => {
+exports.getProducts = (req, res, next) => {
   //fetching the products using sequelize
 
   Product.findAll({ where: { userId: req.user.id } }) // Authorization: restricting the access of products based on the logged-in user
-  .then(products => {
-    res.render('shop/product-list', {
-      pageTitle: 'My Shop',
+    .then(products => {
+      res.render('shop/product-list', {
+        pageTitle: 'My Shop',
         path: '/products',
         prods: products,
       });
     })
     .catch(err => {
-      console.log(err);
+      console.log(err)
     })
 }
 
 // to get the particular product => product detail
-exports.getProduct = (req, res) => {
+exports.getProduct = (req, res, next) => {
   const productId = req.params.productId;
 
   // finding the product using the sequelize 
@@ -31,11 +31,14 @@ exports.getProduct = (req, res) => {
       });
     })
     .catch(err => {
-      console.log(err);
+      //using express error handling middleware
+      const error = new Error(err);
+      error.httpStatusCode = 500;
+      return next(error);
     })
 }
 
-exports.getIndex = (req, res) => {
+exports.getIndex = (req, res, next) => {
   //fetching the products using sequelize
 
   Product.findAll()
@@ -51,7 +54,7 @@ exports.getIndex = (req, res) => {
     })
 }
 
-exports.postCart = (req, res) => {
+exports.postCart = (req, res, next) => {
   const productId = req.body.productId;
   let fetchedCart;
   let newQuantity = 1;
@@ -85,11 +88,14 @@ exports.postCart = (req, res) => {
       res.redirect('/cart');
     })
     .catch(err => {
-      console.log(err);
+      //using express error handling middleware
+      const error = new Error(err);
+      error.httpStatusCode = 500;
+      return next(error);
     })
 }
 
-exports.getCart = (req, res) => {
+exports.getCart = (req, res, next) => {
   req.user.getCart()
     .then(cart => {
       return cart.getProducts()
@@ -103,12 +109,16 @@ exports.getCart = (req, res) => {
         .catch(err => {
           console.log(err);
         });
-    }).catch(err => {
-      console.log(err);
-    });
+    })
+    .catch(err => {
+      //using express error handling middleware
+      const error = new Error(err);
+      error.httpStatusCode = 500;
+      return next(error);
+    })
 }
 
-exports.postCartDeleteProduct = (req, res) => {
+exports.postCartDeleteProduct = (req, res, next) => {
   const productId = req.body.productId;
 
   // using sequelize to delete the cart item
@@ -125,11 +135,14 @@ exports.postCartDeleteProduct = (req, res) => {
       res.redirect('/cart');
     })
     .catch(err => {
-      console.log(err)
+      //using express error handling middleware
+      const error = new Error(err);
+      error.httpStatusCode = 500;
+      return next(error);
     })
 }
 
-exports.postOrder = (req, res) => {
+exports.postOrder = (req, res, next) => {
   let fetchedCart;
 
   req.user.getCart()
@@ -158,11 +171,14 @@ exports.postOrder = (req, res) => {
       res.redirect('/orders');
     })
     .catch(err => {
-      console.log(err);
+      //using express error handling middleware
+      const error = new Error(err);
+      error.httpStatusCode = 500;
+      return next(error);
     })
 }
 
-exports.getOrders = (req, res) => {
+exports.getOrders = (req, res, next) => {
   req.user.getOrders({ include: ['products'] })
     .then(orders => {
       res.render('shop/orders', {
@@ -171,5 +187,10 @@ exports.getOrders = (req, res) => {
         orders: orders,
       });
     })
-    .catch(err => console.log(err));
+    .catch(err => {
+      //using express error handling middleware
+      const error = new Error(err);
+      error.httpStatusCode = 500;
+      return next(error);
+    })
 }
