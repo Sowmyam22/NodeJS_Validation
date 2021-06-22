@@ -31,7 +31,15 @@ var csrfProtection = csrf();
 app.set('view engine', 'ejs');
 app.set('views', 'views');
 
-app.use(bodyParser.urlencoded({ extended: false }));
+/** In order to get access to the post data we have to use body-parser **/
+
+// app.use(bodyParser.urlencoded({ extended: false })); // body parser is deprecated
+
+/** if you use express.json() it will parse the body from post/fetch request except from html post form
+it wont parse information from the html post form **/
+
+// app.use(express.json()); // an alternate of body parser
+app.use(express.urlencoded({extended: false}));
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(session(
   {
