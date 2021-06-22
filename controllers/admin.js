@@ -1,3 +1,5 @@
+const { validationResult } = require('express-validator/check');
+
 const Product = require('../models/product');
 const User = require('../models/user');
 
@@ -13,12 +15,34 @@ exports.getAddProduct = (req, res) => {
     pageTitle: 'My Shop',
     path: '/admin/add-product',
     editing: false,
+    hasError: false,
+    errorMessage: null,
+    validationErrors: []
   });
 };
 
 // add product 
 exports.postAddProduct = (req, res) => {
   const { title, imageUrl, price, description } = req.body;
+
+  const errors = validationResult(req);
+
+  if (!errors.isEmpty()) {
+    return res.status(422).render('admin/edit-product', {
+      pageTitle: 'My Shop',
+      path: '/admin/add-product',
+      editing: false,
+      product: {
+        title: title,
+        imageUrl: imageUrl,
+        price: price,
+        description: description
+      },
+      hasError: true,
+      errorMessage: errors.array()[0].msg,
+      validationErrors: errors.array()
+    })
+  }
 
   req.user.createProduct({
     title: title,
@@ -56,6 +80,9 @@ exports.getEditProduct = (req, res) => {
         path: '/admin/edit-product',
         editing: editMode,
         product: product,
+        hasError: false,
+        errorMessage: null,
+        validationErrors: []
       });
     })
     .catch(err => {
@@ -66,6 +93,26 @@ exports.getEditProduct = (req, res) => {
 
 exports.postEditProduct = (req, res) => {
   const { productId, title, imageUrl, price, description } = req.body;
+  const editMode = req.query.edit;
+  const errors = validationResult(req);
+
+  if (!errors.isEmpty()) {
+    return res.status(422).render('admin/edit-product', {
+      pageTitle: 'My Shop',
+      path: '/admin/edit-product',
+      editing: editMode,
+      product: {
+        id: productId,
+        title: title,
+        imageUrl: imageUrl,
+        price: price,
+        description: description
+      },
+      hasError: true,
+      errorMessage: errors.array()[0].msg,
+      validationErrors: errors.array()
+    })
+  }
 
   // using sequelize to update the product details
 

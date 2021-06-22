@@ -36,10 +36,12 @@ router.post('/login',
               )
             }
           })
-      }),
+      })
+      .normalizeEmail(),   // sanitizing the user input: converts all the uppercase to lowercase
     body('password', 'Please enter a valid password!')
       .isLength({ min: 5 })
-      .isAlphanumeric(),
+      .isAlphanumeric()
+      .trim(),
   ],
   postLogin
 );
@@ -56,11 +58,14 @@ router.post('/signup',
               return Promise.reject('Email Already Exists! Please enter unique Email ID!')   //async validation
             }
           })
-      }),
+      })
+      .normalizeEmail(),
     body('password', 'Please enter a password with only numbers and text and at least 5 characters')
       .isLength({ min: 5 })
-      .isAlphanumeric(),
-    body('confirmPassword') //custom validator to match password and confirm password
+      .isAlphanumeric()
+      .trim(), // to trim excess whitespace
+    body('confirmPassword')
+      .trim() //custom validator to match password and confirm password
       .custom((value, { req }) => {
         if (value !== req.body.password) {
           throw new Error('Passwords have to match!!!');
