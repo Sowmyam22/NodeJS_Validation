@@ -32,6 +32,17 @@ exports.getLogin = (req, res) => {
 exports.postLogin = (req, res) => {
   const { email, password } = req.body;
 
+  // registering the validation errors
+  const errors = validationResult(req);
+
+  if (!errors.isEmpty()) {
+    return res.status(422).render('auth/login', {
+      path: '/login',
+      pageTitle: 'My Shop',
+      errorMessage: errors.array()[0].msg
+    })
+  }
+
   User.findOne({ where: { email: email } })
     .then(user => {
       if (!user) {
@@ -97,39 +108,28 @@ exports.postSignup = (req, res, next) => {
     })
   }
 
-  User.findOne({ where: { email: email } })
-    .then(userData => {
-      // find if user already exists
-
-      if (userData) {
-        req.flash('error', 'Email Already Exists!');
-        return res.redirect('/signup');
-      }
-
-      return bcrypt.hash(password, 12)
-        .then(hashedPassword => {
-          // if no user then create new User
-          User.create({
-            name: name,
-            email: email,
-            password: hashedPassword,
+  bcrypt.hash(password, 12)
+    .then(hashedPassword => {
+      // if no user then create new User
+      User.create({
+        name: name,
+        email: email,
+        password: hashedPassword,
+      })
+        .then(user => {
+          user.createCart();      // create cart for the user
+        })
+        .then(result => {
+          res.redirect('/login');
+          return transporter.sendMail({
+            to: email,
+            from: 'shop-node@node-complete.com',
+            subject: 'Signed Up Successfully!',
+            html: '<h1>Your are signed in succeccfully! Go ahead and shop!</h1>'
           })
-            .then(user => {
-              user.createCart();      // create cart for the user
-            })
-            .then(result => {
-              res.redirect('/login');
-              return transporter.sendMail({
-                to: email,
-                from: 'shop-node@node-complete.com',
-                subject: 'Signed Up Successfully!',
-                html: '<h1>Your are signed in succeccfully! Go ahead and shop!</h1>'
-              })
-            })
-            .catch(err => console.log(err));
-        });
-    })
-    .catch(err => console.log(err));
+        })
+        .catch(err => console.log(err));
+    });
 }
 
 exports.getReset = (req, res) => {

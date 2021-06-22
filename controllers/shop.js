@@ -3,10 +3,10 @@ const Product = require('../models/product');
 exports.getProducts = (req, res) => {
   //fetching the products using sequelize
 
-  Product.findAll({where: {userId: req.user.id}})
-    .then(products => {
-      res.render('shop/product-list', {
-        pageTitle: 'My Shop',
+  Product.findAll({ where: { userId: req.user.id } }) // Authorization: restricting the access of products based on the logged-in user
+  .then(products => {
+    res.render('shop/product-list', {
+      pageTitle: 'My Shop',
         path: '/products',
         prods: products,
       });
