@@ -25,7 +25,12 @@ exports.getLogin = (req, res) => {
   res.render('auth/login', {
     path: '/login',
     pageTitle: 'Login',
-    errorMessage: message // passsing the error message to the views
+    errorMessage: message, // passsing the error message to the views
+    oldInput: {
+      email: "",
+      password: "",
+    },
+    validationErrors: []
   });
 };
 
@@ -39,15 +44,29 @@ exports.postLogin = (req, res) => {
     return res.status(422).render('auth/login', {
       path: '/login',
       pageTitle: 'My Shop',
-      errorMessage: errors.array()[0].msg
+      errorMessage: errors.array()[0].msg,
+      oldInput: {
+        email: email,
+        password: password,
+      },
+      validationErrors: errors.array()
     })
   }
 
   User.findOne({ where: { email: email } })
     .then(user => {
       if (!user) {
-        req.flash('error', 'Invalid email or pasword'); // setting the error message
-        return res.redirect('/login');
+        // req.flash('error', 'Invalid email or pasword'); // setting the error message using flash
+        return res.status(422).render('auth/login', {
+          path: '/login',
+          pageTitle: 'My Shop',
+          errorMessage: 'Invalid email or pasword',
+          oldInput: {
+            email: email,
+            password: password,
+          },
+          validationErrors: errors.array()
+        })
       }
 
       // check the incoming password with the encrypted password of the user
@@ -63,8 +82,17 @@ exports.postLogin = (req, res) => {
             })
           }
 
-          req.flash('error', 'Invalid email or pasword');
-          res.redirect('/login');
+          // req.flash('error', 'Invalid email or pasword'); // showing error message using flash
+          return res.status(422).render('auth/login', {
+            path: '/login',
+            pageTitle: 'My Shop',
+            errorMessage: 'Invalid email or pasword',
+            oldInput: {
+              email: email,
+              password: password,
+            },
+            validationErrors: errors.array()
+          })
         })
         .catch(err => console.log(err));
     })
