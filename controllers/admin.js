@@ -22,7 +22,7 @@ exports.getAddProduct = (req, res) => {
 };
 
 // add product 
-exports.postAddProduct = (req, res) => {
+exports.postAddProduct = (req, res, next) => {
   const { title, imageUrl, price, description } = req.body;
 
   const errors = validationResult(req);
@@ -55,7 +55,12 @@ exports.postAddProduct = (req, res) => {
       res.redirect('/');
     })
     .catch(err => {
-      console.log(err);
+      // res.redirect('/500'); // redirect to the 500 error page
+
+      //using express error handling middleware
+      const error = new Error(err);
+      error.httpStatusCode = 500;
+      return next(error);
     })
 };
 
@@ -86,7 +91,10 @@ exports.getEditProduct = (req, res) => {
       });
     })
     .catch(err => {
-      console.log(err);
+      //using express error handling middleware
+      const error = new Error(err);
+      error.httpStatusCode = 500;
+      return next(error);
     })
 
 };
@@ -129,7 +137,10 @@ exports.postEditProduct = (req, res) => {
       res.redirect('/admin/products');
     })
     .catch(err => {
-      console.log(err);
+      //using express error handling middleware
+      const error = new Error(err);
+      error.httpStatusCode = 500;
+      return next(error);
     })
 }
 
@@ -146,7 +157,12 @@ exports.getProducts = (req, res) => {
         prods: products,
       });
     })
-    .catch(err => console.log(err))
+    .catch(err => {
+      //using express error handling middleware
+      const error = new Error(err);
+      error.httpStatusCode = 500;
+      return next(error);
+    })
 }
 
 exports.postDeleteProduct = (req, res) => {
@@ -160,6 +176,9 @@ exports.postDeleteProduct = (req, res) => {
       res.redirect('/admin/products');
     })
     .catch(err => {
-      console.log(err);
+      //using express error handling middleware
+      const error = new Error(err);
+      error.httpStatusCode = 500;
+      return next(error);
     })
 }

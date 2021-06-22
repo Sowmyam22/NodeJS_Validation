@@ -39,7 +39,7 @@ app.set('views', 'views');
 it wont parse information from the html post form **/
 
 // app.use(express.json()); // an alternate of body parser
-app.use(express.urlencoded({extended: false}));
+app.use(express.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(session(
   {
@@ -61,10 +61,16 @@ app.use((req, res, next) => {
 
   User.findByPk(req.session.user.id)
     .then(user => {
+      if (!user) {
+        return next();
+      }
       req.user = user;
       next()
     })
-    .catch(err => console.log(err));
+    .catch(err => {
+      throw new Error(err);
+      // next();
+    });
 })
 
 // middleware to check if logged in user is authenticated and adding the csrf protection for every request
@@ -79,7 +85,16 @@ app.use('/admin', adminData.routes);
 app.use(shopRoutes);
 app.use(authRoutes);
 
+app.get('/500', errorController.get500);
 app.use(errorController.get404);
+
+/** express js error handling middleware: 
+if there are more than one error-handling middleware.they'll execute from top to bottom **/
+
+app.use((error, req, res, next) => {
+  // res.status(error.httpStatusCode).render(.....);
+  res.redirect('/500');
+})
 
 Product.belongsTo(User, { constraints: true, onDelete: 'CASCADE' });
 User.hasMany(Product);
