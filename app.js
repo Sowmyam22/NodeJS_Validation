@@ -1,4 +1,8 @@
+require('dotenv').config({ path: __dirname + '/.env' });
+
 const path = require('path');
+const fs = require('fs');
+const https = require('https');
 
 const express = require('express');
 const bodyParser = require('body-parser');
@@ -6,6 +10,9 @@ const session = require('express-session');
 const SequelizeStore = require('connect-session-sequelize')(session.Store);
 const csrf = require('csurf'); // adding csrf protection
 const flash = require('connect-flash'); // used to show the error messages
+const helmet = require('helmet');
+const compression = require('compression');
+const morgan = require('morgan');
 
 const adminData = require('./routes/admin');
 const shopRoutes = require('./routes/shop');
@@ -28,8 +35,19 @@ const store = new SequelizeStore({
 
 var csrfProtection = csrf();
 
+const privateKey = fs.readFileSync('server.key');
+const certificate = fs.readFileSync('server.cert');
+
 app.set('view engine', 'ejs');
 app.set('views', 'views');
+
+const accessLogStream = fs.createWriteStream(path.join(__dirname, 'access.log'), { flags: 'a' });
+
+app.use(helmet()); // sets secire response HTTP headers
+
+app.use(compression()); // compresses the responses bodies
+
+app.use(morgan('combined', { stream: accessLogStream }));  // setting up request logging
 
 /** In order to get access to the post data we have to use body-parser **/
 
@@ -114,7 +132,9 @@ Order.belongsToMany(Product, { through: OrderItem });
 // sequelize.sync({ force: true })    // used to override the tables in the database
 sequelize.sync()
   .then(result => {
-    app.listen(3000);
+    https.createServer({ key: privateKey, cert: certificate }, app)
+      .listen(process.env.PORT);
+    // app.listen(process.env.PORT || 3000);
   })
   .catch(err => {
     console.log(err);
